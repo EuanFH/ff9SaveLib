@@ -1,15 +1,10 @@
 package main
 
 import (
-    "bytes"
     "crypto/aes"
     "crypto/cipher"
     "crypto/sha1"
-    "encoding/binary"
-    "encoding/json"
     "golang.org/x/crypto/pbkdf2"
-    "io/ioutil"
-    "os"
 )
 
 //assuming this is extracted from the game
@@ -21,6 +16,7 @@ const AES256KeySize = 32
 const saveBlockSize = 18432
 
 func main(){
+    /*
     jsonFile, err := os.Open("origSave.json")
     // if we os.Open returns an error then handle it
     if err != nil {
@@ -32,7 +28,7 @@ func main(){
 	if err != nil {
 	    panic(err)
     }
-    var ff9Save FF9Save
+    var ff9Save FF9Save.Slot
     if err := json.Unmarshal(ff9JsonSaveBytes, &ff9Save); err != nil {
         panic(err)
     }
@@ -46,61 +42,16 @@ func main(){
         panic(err)
     }
 
-    //blyt to file
-    buf := new(bytes.Buffer)
+    ff9SaveBytes, err := ff9Save.MarshalBinary()
+    if err != nil {
+        panic(err)
+    }
 
-    if err := binary.Write(buf, binary.LittleEndian, []byte{'S','A','V','E'}); err != nil{
-        panic(err)
-    }
-    if err := binary.Write(buf, binary.LittleEndian, ff9Save); err != nil{
-        panic(err)
-    }
-    err = ioutil.WriteFile("output.bin", buf.Bytes(), 0777)
+    err = ioutil.WriteFile("output.bin", ff9SaveBytes, 0777)
     if err != nil{
         panic(err)
     }
-
-    //read and put into json
-    var ff9SaveFromBin FF9Save
-    binFile, err := os.Open("origSave.bin")
-    if err != nil {
-        panic(err)
-    }
-    defer binFile.Close()
-    ff9BinSaveBytes, err := ioutil.ReadAll(binFile)
-    if err != nil {
-        panic(err)
-    }
-
-    ff9BinSaveBytes = ff9BinSaveBytes[4:]
-    ff9BinSaveBytes = append(ff9BinSaveBytes, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00)
-    binBuf := bytes.NewReader(ff9BinSaveBytes)
-    if err := binary.Read(binBuf, binary.LittleEndian, &ff9BinSaveBytes); err != nil {
-    	panic(err)
-    }
-
-    newJsonSaveBuf, err := json.Marshal(ff9SaveFromBin)
-    if err := ioutil.WriteFile("binToJson.json", newJsonSaveBuf, os.ModePerm); err != nil{
-        panic(err)
-    }
-    /*
-  //filePath := os.Args[1]
-    filePath := "/home/chinz/mnt/HentaiGames/SteamGames/steamapps/compatdata/377840/pfx/drive_c/users/steamuser/AppData/LocalLow/SquareEnix/FINAL FANTASY IX/Steam/EncryptedSavedData/SavedData_ww.dat"
-    encryptedSaveFile, err := ioutil.ReadFile(filePath)
-  if err != nil {
-   fmt.Println("failed to read save file")
-   return
-  }
-  decryptedSaveFile, err := decryptSaveFile(encryptedSaveFile)
-  if err != nil{
-    fmt.Println("failed to decrypt save file")
-    return
-  }
-  if err = ioutil.WriteFile("./decryptedSave", decryptedSaveFile, 0777); err != nil{
-    fmt.Println("failed to write decrypted save file")
-    return
-  }
-    */
+     */
 }
 
 func decryptSaveFile(encryptedSave []byte) ([]byte, error){
