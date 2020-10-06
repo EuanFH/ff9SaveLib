@@ -1,6 +1,6 @@
 package FF9Save
 
-type SlotPreview struct {
+type FilePreview struct {
 	IsPreviewCorrupted bool
 	HasData bool
 	Gil int //find out type

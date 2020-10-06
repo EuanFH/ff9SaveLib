@@ -10,7 +10,7 @@ import (
 	"strings"
 )
 
-type Slot struct {
+type File struct {
 	Data struct {
 		State_10000       State_10000       `json:"10000_State"`
 		Event_20000       Event_20000       `json:"20000_Event"`
@@ -33,20 +33,20 @@ type Slot struct {
 }
 
 
-func (s *Slot)MarshalBinary() ([]byte, error) {
+func (f *File)MarshalBinary() ([]byte, error) {
 	buf := new(bytes.Buffer)
 	if err := binary.Write(buf, binary.LittleEndian, []byte{'S','A','V','E'}); err != nil{
 		return nil, err
 	}
-	if err := ff9SaveToBinary(*s, buf, 0); err != nil{
+	if err := ff9SaveToBinary(*f, buf, 0); err != nil{
 		return nil, err
 	}
 	return buf.Bytes(), nil
 }
 
-func (s *Slot)UnmarshalBinary(data []byte) error{
+func (f *File)UnmarshalBinary(data []byte) error{
 	buf := bytes.NewBuffer(data[4:])
-	if err := ff9SaveBinaryToStruct(s, buf, 0); err != nil{
+	if err := ff9SaveBinaryToStruct(f, buf, 0); err != nil{
 		return err
 	}
 	return nil
@@ -184,9 +184,9 @@ func ff9SaveToBinary(save interface{}, buf *bytes.Buffer, depth int) error {
 	return nil
 }
 
-func(s *Slot) UnmarshalJSON(data []byte) error{
+func(f *File) UnmarshalJSON(data []byte) error{
 	//aliasing type to remove unmarshal function to stop infinite loop
-	type Alias Slot
+	type Alias File
 	var alias Alias
 	//fixing boolean values to convert correctly
 	data = bytes.ReplaceAll(data, []byte("True"), []byte("true"))
@@ -194,7 +194,7 @@ func(s *Slot) UnmarshalJSON(data []byte) error{
 	if err := json.Unmarshal(data, &alias); err != nil {
 		return err
 	}
-	*s = Slot(alias)
+	*f = File(alias)
 	return nil
 }
 
