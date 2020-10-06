@@ -35,6 +35,7 @@ type File struct {
 
 func (f *File)MarshalBinary() ([]byte, error) {
 	buf := new(bytes.Buffer)
+	//handle none
 	if err := binary.Write(buf, binary.LittleEndian, []byte{'S','A','V','E'}); err != nil{
 		return nil, err
 	}
@@ -46,6 +47,7 @@ func (f *File)MarshalBinary() ([]byte, error) {
 
 func (f *File)UnmarshalBinary(data []byte) error{
 	buf := bytes.NewBuffer(data[4:])
+	//handle none
 	if err := ff9SaveBinaryToStruct(f, buf, 0); err != nil{
 		return err
 	}
