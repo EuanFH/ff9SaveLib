@@ -4,8 +4,8 @@ import (
 	"bytes"
 	"encoding/binary"
 )
-//size=961
-//savecount=15
+const FilePreviewSize = 965
+const FilePreviewReservedSize = 1024
 
 type FilePreview struct {
 	IsPreviewCorrupted bool
@@ -27,22 +27,58 @@ type CharacterInfo struct {
 
 func (fp *FilePreview) MarshalBinary() ([]byte, error) {
 	buf := new(bytes.Buffer)
+	filePreview := *fp
 	if *fp == (FilePreview{}) {
 		if err := binary.Write(buf, binary.LittleEndian, []byte{'N','O','N','E'}); err != nil{
 			return nil, err
 		}
-		//write zeros for len
-		return buf.Bytes(), nil
+	} else {
+		if err := binary.Write(buf, binary.LittleEndian, []byte{'P','R','E','V'}); err != nil{
+			return nil, err
+		}
+		filePreview.FixCharacterInfoForBinary()
 	}
-	if err := binary.Write(buf, binary.LittleEndian, []byte{'P','R','E','V'}); err != nil{
+	filePreviewBuf := new(bytes.Buffer)
+	if err := binary.Write(filePreviewBuf, binary.LittleEndian, filePreview); err != nil{
 		return nil, err
 	}
-	/*
-		binaryWriter.Write(previewSlot.HasData);
-		binaryWriter.Write(previewSlot.Gil);
-		binaryWriter.Write(previewSlot.PlayDuration);
-		binaryWriter.Write(previewSlot.win_type);
-	 */
+	//remove IsPreviewCorrupted its no included in binary
+	if err := binary.Write(buf, binary.LittleEndian, filePreviewBuf.Bytes()[1:]); err != nil{
+		return nil, err
+	}
 	return buf.Bytes(), nil
+}
+//in json the values are 0 for empty characterInfo but in binary they are -1
+func (fp *FilePreview) FixCharacterInfoForBinary() {
+	for i, _ := range fp.CharacterInfoList {
+		if fp.CharacterInfoList[i].SerialID == 0 {
+			fp.CharacterInfoList[i].SerialID = -1
+		}
+		if fp.CharacterInfoList[i].Level == 0 {
+			fp.CharacterInfoList[i].Level = -1
+		}
+	}
+}
+
+func (fp *FilePreview) FixCharacterInfoFromBinary() {
+	for i, _ := range fp.CharacterInfoList {
+		if fp.CharacterInfoList[i].SerialID == -1 {
+			fp.CharacterInfoList[i].SerialID = 0
+		}
+		if fp.CharacterInfoList[i].Level == -1 {
+			fp.CharacterInfoList[i].Level = 0
+		}
+	}
+}
+
+func (fp *FilePreview)UnmarshalBinary(data []byte) error{
+	//remove header set is corrupted to false
+	data = append([]byte{0x00}, data[4:]...)
+	buf := bytes.NewBuffer(data)
+	if err := binary.Read(buf, binary.LittleEndian, fp); err != nil{
+		return err
+	}
+	fp.FixCharacterInfoFromBinary()
+	return nil
 }
 

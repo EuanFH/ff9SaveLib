@@ -10,6 +10,9 @@ import (
 	"strings"
 )
 
+const FileSize = 17970
+const FileReservedSize = 18432
+
 type File struct {
 	Data struct {
 		State_10000       State_10000       `json:"10000_State"`
@@ -35,9 +38,14 @@ type File struct {
 
 func (f *File)MarshalBinary() ([]byte, error) {
 	buf := new(bytes.Buffer)
-	//handle none
-	if err := binary.Write(buf, binary.LittleEndian, []byte{'S','A','V','E'}); err != nil{
-		return nil, err
+	if *f == (File{}) {
+		if err := binary.Write(buf, binary.LittleEndian, []byte{'N','O','N','E'}); err != nil{
+			return nil, err
+		}
+	} else {
+		if err := binary.Write(buf, binary.LittleEndian, []byte{'S','A','V','E'}); err != nil{
+			return nil, err
+		}
 	}
 	if err := ff9SaveToBinary(*f, buf, 0); err != nil{
 		return nil, err
