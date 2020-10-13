@@ -1,21 +1,47 @@
 package main
 
 import (
-    "crypto/aes"
-    "crypto/cipher"
-    "crypto/sha1"
-    "golang.org/x/crypto/pbkdf2"
+	"chinzer.net/ff9-save-converter/FF9Save"
+	"encoding/json"
+	"io/ioutil"
+	"strconv"
+	"strings"
 )
 
-//assuming this is extracted from the game
-//hex decode?
-var password = []byte("67434cd0-1ca3-11e5-9a21-1697f925ec7b7a5313a0-1ca3-11e5-b939-0800200c9a66")
-var salt = []byte{3,3,1,4,7,0,9,7}
-const AES256KeySize = 32
-
-const saveBlockSize = 18432
-
 func main(){
+	saveData := readSwitchSave()
+	saveDataBinary, err := saveData.MarshalBinary()
+	if err != nil {
+		panic(err)
+	}
+	if err := ioutil.WriteFile("saveDataFromSwitch", saveDataBinary, 0777); err != nil {
+		panic(err)
+	}
+	var saveDataOrig FF9Save.SaveData
+	saveDataBytes, err := ioutil.ReadFile("SavedData_ww.dat")
+	if err != nil{
+		panic(err)
+	}
+	if err := saveDataOrig.UnmarshalBinary(saveDataBytes); err != nil {
+		panic(err)
+	}
+	/*
+	var saveData FF9Save.SaveData
+	saveDataBytes, err := ioutil.ReadFile("SavedData_ww.dat")
+	if err != nil{
+		panic(err)
+	}
+	if err := saveData.UnmarshalBinary(saveDataBytes); err != nil {
+		panic(err)
+	}
+	saveDataNew, err := saveData.MarshalBinary()
+	if err != nil {
+		panic(err)
+	}
+	if err := ioutil.WriteFile("newSaveData", saveDataNew, 0777); err != nil {
+		panic(err)
+	}
+	 */
     /*
     jsonFile, err := os.Open("origSave.json")
     // if we os.Open returns an error then handle it
@@ -54,15 +80,81 @@ func main(){
      */
 }
 
-func decryptSaveFile(encryptedSave []byte) ([]byte, error){
-  //don't know why its 1000 iterations
-  key := pbkdf2.Key(password, salt, 1000, AES256KeySize, sha1.New)
-  block, err := aes.NewCipher(key)
-  if err != nil {
-    return nil, err
-  }
-  mode := cipher.NewCBCDecrypter(block, key[:aes.BlockSize])
-  decryptedSave := make([]byte, len(encryptedSave))
-  mode.CryptBlocks(decryptedSave, encryptedSave)
-  return decryptedSave, nil
+//this code will not work in a lot of cases
+func readSwitchSave() FF9Save.SaveData{
+	saveData := FF9Save.NewSaveData()
+	fileInfoBytes, err := ioutil.ReadFile("SwitchSaves/SLOTINFO")
+	if err != nil {
+		panic(err)
+	}
+	if err := json.Unmarshal(fileInfoBytes, &saveData.MetaData.FileInfo); err != nil {
+		panic(err)
+	}
+	saveData.MetaData.SelectedLanguage = 1 //cba reading file this now
+	files, err := ioutil.ReadDir("SwitchSaves")
+	if err != nil {
+		panic(err)
+	}
+	for _, file := range files {
+		if(!strings.HasPrefix(file.Name(), "PREVIEW")){
+			continue
+		}
+		slotRune := []rune(file.Name())[12]
+		slotNo, err := strconv.Atoi(string(slotRune))
+		if err != nil{
+			panic(err)
+		}
+		fileRune := []rune(file.Name())[18]
+		fileNo, err := strconv.Atoi(string(fileRune))
+		if err != nil{
+			panic(err)
+		}
+
+		previewFileNo := slotNo * 15 + fileNo
+
+
+		previewBytes, err := ioutil.ReadFile("SwitchSaves/" + file.Name())
+		if err != nil {
+			panic(err)
+		}
+		if err := json.Unmarshal(previewBytes, &saveData.FilePreviews[previewFileNo]); err != nil {
+			panic(err)
+		}
+
+	}
+	fileBytes, err := ioutil.ReadFile("SwitchSaves/AUTO")
+	if err != nil {
+		panic(err)
+	}
+	if err := json.Unmarshal(fileBytes, &saveData.Auto); err != nil {
+		panic(err)
+	}
+	for _, file := range files {
+		if(!strings.HasPrefix(file.Name(), "DATA")){
+			continue
+		}
+		slotRune := []rune(file.Name())[9]
+		slotNo, err := strconv.Atoi(string(slotRune))
+		if err != nil{
+			panic(err)
+		}
+		fileRune := []rune(file.Name())[15]
+		fileNo, err := strconv.Atoi(string(fileRune))
+		if err != nil{
+			panic(err)
+		}
+
+		fileNo = slotNo * 15 + fileNo
+
+
+		fileBytes, err := ioutil.ReadFile("SwitchSaves/" + file.Name())
+		if err != nil {
+			panic(err)
+		}
+		if err := json.Unmarshal(fileBytes, &saveData.Slot[fileNo]); err != nil {
+			panic(err)
+		}
+
+	}
+	return saveData
 }

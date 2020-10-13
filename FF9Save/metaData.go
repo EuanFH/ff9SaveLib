@@ -23,11 +23,11 @@ type MetaData struct {
 func NewMetaData() MetaData{
 	return MetaData{
 		SaveVersion: 1.0,
-		DataSize: FileSize,
+		DataSize: FileSize - 4,
 		IsGameFinishFlag: 0, //zero is not finished one is finished
 		IsAutoLogin: 0x00 , //temp will need to read this from the real game file. no idea what are valid values
 		SystemAchievementStatuses: 0x00,
-		ScreenRotation: 0x03, //assuming this is landscape for this now. will need to read a normal save file
+		ScreenRotation: 0x03, //assuming this is landscape for this now. will need to read a normal save file //seems to be screen rotation is zero on pc
 	}
 }
 

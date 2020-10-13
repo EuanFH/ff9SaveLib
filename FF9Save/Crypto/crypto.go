@@ -70,6 +70,7 @@ func Decrypt(encryptedData []byte) ([]byte, error){
 }
 
 func EncryptDecrypt(data []byte, encrypt bool) ([]byte, error){
+	//add pad and unpad here
 	keyIV := pbkdf2.Key(password, salt, 1000, AES256KeySize + aes.BlockSize, sha1.New)
 	key, iv := keyIV[:AES256KeySize], keyIV[AES256KeySize:]
 	block, err := aes.NewCipher(key)
