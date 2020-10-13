@@ -3,7 +3,6 @@ package FF9Save
 import (
 	"bytes"
 	"encoding/binary"
-	"encoding/json"
 	"reflect"
 	"sort"
 	"strconv"
@@ -33,179 +32,6 @@ type File struct {
 		Achievement_98000 Achievement_98000 `json:"98000_Achievement"`
 		Other_99000       [384]int32FromStr `json:"99000_Other"`
 	}
-}
-
-
-func (f *File)MarshalBinary() ([]byte, error) {
-	buf := new(bytes.Buffer)
-	if *f == (File{}) {
-		if err := binary.Write(buf, binary.LittleEndian, []byte{'N','O','N','E'}); err != nil{
-			return nil, err
-		}
-	} else {
-		if err := binary.Write(buf, binary.LittleEndian, []byte{'S','A','V','E'}); err != nil{
-			return nil, err
-		}
-	}
-	if err := ff9SaveToBinary(*f, buf, 0); err != nil{
-		return nil, err
-	}
-	return buf.Bytes(), nil
-}
-
-func (f *File)UnmarshalBinary(data []byte) error{
-	buf := bytes.NewBuffer(data[4:])
-	//handle none
-	if err := ff9SaveBinaryToStruct(f, buf, 0); err != nil{
-		return err
-	}
-	return nil
-}
-
-func ff9SaveBinaryToStruct(save interface{}, buf *bytes.Buffer, depth int) error{
-	//field := reflect.TypeOf(save)
-	value := reflect.Indirect(reflect.ValueOf(save))
-	switch reflect.Indirect(reflect.ValueOf(save)).Kind() {
-	case reflect.Struct:
-		var fieldSortedIndex []int
-		if(depth > 1){
-			var fieldNames []string
-			for i := 0; i < value.NumField(); i++ {
-				jsonName := value.Type().Field(i).Tag.Get("json")
-				jsonName = strings.Split(jsonName, ",")[0]
-				fieldNames = append(fieldNames, jsonName)
-			}
-			sortedFieldNames := make([]string, len(fieldNames))
-			copy(sortedFieldNames, fieldNames)
-			//Reason for the weird sorting here is because c sharp and go sort very
-			//differently even though they use the same algorithm
-			//Go takes into account case c sharp dosn't
-			//not going to attempt to explain the numbers shit
-			sort.Slice(sortedFieldNames, func(i int, j int) bool{
-				//check if start with number
-				_, containsNumberI := strconv.Atoi(string(sortedFieldNames[i][0]))
-				_, containsNumberJ := strconv.Atoi(string(sortedFieldNames[i][0]))
-				if containsNumberI == nil && containsNumberJ == nil {
-					numberI, _ := strconv.Atoi(strings.Split(sortedFieldNames[i], "_")[0])
-					numberj, _ := strconv.Atoi(strings.Split(sortedFieldNames[j], "_")[0])
-					return numberI < numberj
-				}
-				//lowercase to avoid uppercase letters messing with order
-				return strings.ToLower(sortedFieldNames[i]) < strings.ToLower(sortedFieldNames[j])
-			})
-			for _, sortedFieldName := range sortedFieldNames{
-				for j, fieldName := range fieldNames {
-					if(sortedFieldName == fieldName) {
-						fieldSortedIndex = append(fieldSortedIndex, j)
-					}
-				}
-			}
-		}
-		for i := 0; i < value.NumField(); i++ {
-			field := value.Field(i)
-			if(fieldSortedIndex != nil){
-				field = value.Field(fieldSortedIndex[i])
-			}
-			if err := ff9SaveBinaryToStruct(field.Addr().Interface(), buf, depth + 1); err != nil{
-				return err
-			}
-		}
-	case reflect.Array:
-		for i := 0; i < value.Len(); i++ {
-			arrayValue := value.Index(i)
-			if err := ff9SaveBinaryToStruct(arrayValue.Addr().Interface(), buf, depth + 1); err != nil{
-				return err
-			}
-		}
-	default:
-		variableBytes := make([]byte, reflect.Indirect(reflect.ValueOf(save)).Type().Size())
-		if _, err := buf.Read(variableBytes); err != nil{
-			return err
-		}
-		if err := binary.Read(bytes.NewBuffer(variableBytes), binary.LittleEndian, save); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-//depth is needed so we dont sort the first or second layer of structs
-//data and the order of the main structs should not be sorted
-func ff9SaveToBinary(save interface{}, buf *bytes.Buffer, depth int) error {
-	field := reflect.TypeOf(save)
-	value := reflect.ValueOf(save)
-	switch reflect.TypeOf(save).Kind() {
-	case reflect.Struct:
-		var fieldSortedIndex []int
-		if(depth > 1){
-			var fieldNames []string
-			for i := 0; i < field.NumField(); i++ {
-				jsonName := value.Type().Field(i).Tag.Get("json")
-				jsonName = strings.Split(jsonName, ",")[0]
-				fieldNames = append(fieldNames, jsonName)
-			}
-			sortedFieldNames := make([]string, len(fieldNames))
-			copy(sortedFieldNames, fieldNames)
-			//Reason for the weird sorting here is because c sharp and go sort very
-			//differently even though they use the same algorithm
-			//Go takes into account case c sharp dosn't
-			//not going to attempt to explain the numbers shit
-			sort.Slice(sortedFieldNames, func(i int, j int) bool{
-				//check if start with number
-				_, containsNumberI := strconv.Atoi(string(sortedFieldNames[i][0]))
-				_, containsNumberJ := strconv.Atoi(string(sortedFieldNames[i][0]))
-				if containsNumberI == nil && containsNumberJ == nil {
-					numberI, _ := strconv.Atoi(strings.Split(sortedFieldNames[i], "_")[0])
-					numberj, _ := strconv.Atoi(strings.Split(sortedFieldNames[j], "_")[0])
-					return numberI < numberj
-				}
-				//lowercase to avoid uppercase letters messing with order
-				return strings.ToLower(sortedFieldNames[i]) < strings.ToLower(sortedFieldNames[j])
-			})
-			for _, sortedFieldName := range sortedFieldNames{
-				for j, fieldName := range fieldNames {
-					if(sortedFieldName == fieldName) {
-						fieldSortedIndex = append(fieldSortedIndex, j)
-					}
-				}
-			}
-		}
-		for i := 0; i < field.NumField(); i++ {
-			field := value.Field(i)
-			if(fieldSortedIndex != nil){
-				field = value.Field(fieldSortedIndex[i])
-			}
-			if err := ff9SaveToBinary(field.Interface(), buf, depth + 1); err != nil{
-				return err
-			}
-		}
-	case reflect.Array:
-		for i := 0; i < value.Len(); i++ {
-			arrayValue := value.Index(i)
-			if err := ff9SaveToBinary(arrayValue.Interface(), buf, depth + 1); err != nil{
-				return err
-			}
-		}
-	default:
-		if err := binary.Write(buf, binary.LittleEndian, reflect.ValueOf(save).Interface()); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-func(f *File) UnmarshalJSON(data []byte) error{
-	//aliasing type to remove unmarshal function to stop infinite loop
-	type Alias File
-	var alias Alias
-	//fixing boolean values to convert correctly
-	data = bytes.ReplaceAll(data, []byte("True"), []byte("true"))
-	data = bytes.ReplaceAll(data, []byte("False"), []byte("false"))
-	if err := json.Unmarshal(data, &alias); err != nil {
-		return err
-	}
-	*f = File(alias)
-	return nil
 }
 
 type State_10000 struct {
@@ -409,4 +235,109 @@ type Achievement_98000 struct {
 type Common_94000 struct {
 	Player_bonus_00001 [9]uint32FromStr    `json:"00001_player_bonus,string"`
 	ReservedBuffer_99999 [119]int32FromStr `json:"99999_ReservedBuffer,string"`
+}
+
+func (f *File)MarshalBinary() ([]byte, error) {
+	buf := new(bytes.Buffer)
+	if *f == (File{}) {
+		if err := binary.Write(buf, binary.LittleEndian, []byte{'N','O','N','E'}); err != nil{
+			return nil, err
+		}
+	} else {
+		if err := binary.Write(buf, binary.LittleEndian, []byte{'S','A','V','E'}); err != nil{
+			return nil, err
+		}
+	}
+	if err := ff9SaveReadWriteBinary(f, buf, true); err != nil{
+		return nil, err
+	}
+	return buf.Bytes(), nil
+}
+
+func (f *File)UnmarshalBinary(data []byte) error{
+	buf := bytes.NewBuffer(data[4:])
+	//probably should check for Save and do some validation
+	if err := ff9SaveReadWriteBinary(f, buf, false); err != nil{
+		return err
+	}
+	return nil
+}
+
+func ff9SaveReadWriteBinary(save interface{}, buf *bytes.Buffer, write bool) error{
+	value := reflect.Indirect(reflect.ValueOf(save))
+	switch value.Kind() {
+	case reflect.Struct:
+		fieldsSortedMap := sortFieldsMap(getJsonFieldNames(value))
+		for i := 0; i < value.NumField(); i++ {
+			field := value.Field(i)
+			if(fieldsSortedMap != nil){
+				field = value.Field(fieldsSortedMap[i])
+			}
+			if err := ff9SaveReadWriteBinary(field.Addr().Interface(), buf, write); err != nil{
+				return err
+			}
+		}
+	case reflect.Array:
+		for i := 0; i < value.Len(); i++ {
+			arrayValue := value.Index(i)
+			if err := ff9SaveReadWriteBinary(arrayValue.Addr().Interface(), buf, write); err != nil{
+				return err
+			}
+		}
+	default:
+		if write {
+			if err := binary.Write(buf, binary.LittleEndian, reflect.ValueOf(save).Interface()); err != nil {
+				return err
+			}
+			return nil
+		}
+		variableBytes := make([]byte, reflect.Indirect(reflect.ValueOf(save)).Type().Size())
+		if _, err := buf.Read(variableBytes); err != nil{
+			return err
+		}
+		if err := binary.Read(bytes.NewBuffer(variableBytes), binary.LittleEndian, save); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func getJsonFieldNames(value reflect.Value) []string{
+	var fieldNames []string
+	for i := 0; i < value.NumField(); i++ {
+		jsonName := value.Type().Field(i).Tag.Get("json")
+		jsonName = strings.Split(jsonName, ",")[0]
+		fieldNames = append(fieldNames, jsonName)
+	}
+	return fieldNames
+}
+
+func sortFieldsMap(fieldNames []string) []int{
+	sortedFieldNames := make([]string, len(fieldNames))
+	copy(sortedFieldNames, fieldNames)
+	//Reason for the weird sorting here is because c sharp and go sort very
+	//differently even though they use the same algorithm
+	//Go takes into account case c sharp dosn't
+	//not going to attempt to explain the numbers shit
+	sort.Slice(sortedFieldNames, func(i int, j int) bool{
+		//check if start with number
+		_, containsNumberI := strconv.Atoi(string(sortedFieldNames[i][0]))
+		_, containsNumberJ := strconv.Atoi(string(sortedFieldNames[i][0]))
+		if containsNumberI == nil && containsNumberJ == nil {
+			numberI, _ := strconv.Atoi(strings.Split(sortedFieldNames[i], "_")[0])
+			numberJ, _ := strconv.Atoi(strings.Split(sortedFieldNames[j], "_")[0])
+			return numberI < numberJ
+		}
+		//lowercase to avoid uppercase letters messing with order
+		return strings.ToLower(sortedFieldNames[i]) < strings.ToLower(sortedFieldNames[j])
+	})
+	var fieldSortedMap []int
+	for _, sortedFieldName := range sortedFieldNames{
+		for j, fieldName := range fieldNames {
+			if(sortedFieldName == fieldName) {
+				fieldSortedMap = append(fieldSortedMap, j)
+			}
+		}
+	}
+	return fieldSortedMap
 }

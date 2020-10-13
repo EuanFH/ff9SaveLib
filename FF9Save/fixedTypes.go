@@ -140,9 +140,9 @@ func (b boolFromStr) MarshalJSON() ([]byte, error) {
 }
 
 func (b *boolFromStr) UnmarshalJSON(data []byte) error {
-	// Try array of strings first.
 	var str string
-	err := json.Unmarshal(data, &str)
+	//they have written the boolean with an upper case letter needs to be lower case
+	err := json.Unmarshal(bytes.ToLower(data), &str)
 	if err != nil {
 		return err
 	}
