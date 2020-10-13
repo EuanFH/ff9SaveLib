@@ -4,6 +4,10 @@ import (
 	"bytes"
 	"chinzer.net/ff9-save-converter/FF9Save/Crypto"
 	"encoding/binary"
+	"encoding/json"
+	"io/ioutil"
+	"strconv"
+	"strings"
 )
 
 const numSlots=10
@@ -20,6 +24,87 @@ func NewSaveData() SaveData{
 	return SaveData{
 		MetaData: NewMetaData(),
 	}
+}
+
+func(sd *SaveData) MarshalJsonFiles(directory string) error {
+	return nil
+}
+
+func(sd *SaveData) UnmarshalJsonFiles(directory string) error {
+	fileInfoBytes, err := ioutil.ReadFile(directory +"/SLOTINFO")
+	if err != nil {
+		panic(err)
+	}
+	if err := json.Unmarshal(fileInfoBytes, &sd.MetaData.FileInfo); err != nil {
+		panic(err)
+	}
+	sd.MetaData.SelectedLanguage = 1 //cba reading file this now
+	files, err := ioutil.ReadDir(directory)
+	if err != nil {
+		panic(err)
+	}
+	for _, file := range files {
+		if(!strings.HasPrefix(file.Name(), "PREVIEW")){
+			continue
+		}
+		slotRune := []rune(file.Name())[12]
+		slotNo, err := strconv.Atoi(string(slotRune))
+		if err != nil{
+			panic(err)
+		}
+		fileRune := []rune(file.Name())[18]
+		fileNo, err := strconv.Atoi(string(fileRune))
+		if err != nil{
+			panic(err)
+		}
+
+		previewFileNo := slotNo * 15 + fileNo
+
+
+		previewBytes, err := ioutil.ReadFile(directory + "/" + file.Name())
+		if err != nil {
+			panic(err)
+		}
+		if err := json.Unmarshal(previewBytes, &sd.FilePreviews[previewFileNo]); err != nil {
+			panic(err)
+		}
+
+	}
+	fileBytes, err := ioutil.ReadFile(directory + "/AUTO")
+	if err != nil {
+		panic(err)
+	}
+	if err := json.Unmarshal(fileBytes, &sd.Auto); err != nil {
+		panic(err)
+	}
+	for _, file := range files {
+		if(!strings.HasPrefix(file.Name(), "DATA")){
+			continue
+		}
+		slotRune := []rune(file.Name())[9]
+		slotNo, err := strconv.Atoi(string(slotRune))
+		if err != nil{
+			panic(err)
+		}
+		fileRune := []rune(file.Name())[15]
+		fileNo, err := strconv.Atoi(string(fileRune))
+		if err != nil{
+			panic(err)
+		}
+
+		fileNo = slotNo * 15 + fileNo
+
+
+		fileBytes, err := ioutil.ReadFile(directory + "/" + file.Name())
+		if err != nil {
+			panic(err)
+		}
+		if err := json.Unmarshal(fileBytes, &sd.Slot[fileNo]); err != nil {
+			panic(err)
+		}
+
+	}
+	return nil
 }
 
 func(sd *SaveData) UnmarshalBinary(data []byte) error{
