@@ -2,16 +2,17 @@ package FF9Save
 
 import (
 	"bytes"
-	"github.com/euanfh/ff9SaveLib/Crypto"
 	"encoding/binary"
 	"encoding/json"
+	"fmt"
+	"github.com/euanfh/ff9SaveLib/Crypto"
 	"io/ioutil"
+	"regexp"
 	"strconv"
-	"strings"
 )
 
-const numSlots=10
-const numFiles=15
+const MaxSlots=10
+const FilesPerSlot=15
 
 type SavedData struct {
 	MetaData MetaData
@@ -20,6 +21,7 @@ type SavedData struct {
 	Slot [150]File
 }
 
+//if i put into the unmarshal function to set these fields up properly i wouldnt need this
 func NewSavedData() SavedData {
 	return SavedData{
 		MetaData: NewMetaData(),
@@ -44,28 +46,15 @@ func(sd *SavedData) UnmarshalJsonFiles(directory string) error {
 		panic(err)
 	}
 	for _, file := range files {
-		if(!strings.HasPrefix(file.Name(), "PREVIEW")){
+		fileNo := getFileNumber("PREVIEW", file.Name())
+		if fileNo == -1 {
 			continue
 		}
-		slotRune := []rune(file.Name())[12]
-		slotNo, err := strconv.Atoi(string(slotRune))
-		if err != nil{
-			panic(err)
-		}
-		fileRune := []rune(file.Name())[18]
-		fileNo, err := strconv.Atoi(string(fileRune))
-		if err != nil{
-			panic(err)
-		}
-
-		previewFileNo := slotNo * 15 + fileNo
-
-
 		previewBytes, err := ioutil.ReadFile(directory + "/" + file.Name())
 		if err != nil {
 			panic(err)
 		}
-		if err := json.Unmarshal(previewBytes, &sd.FilePreviews[previewFileNo]); err != nil {
+		if err := json.Unmarshal(previewBytes, &sd.FilePreviews[fileNo]); err != nil {
 			panic(err)
 		}
 
@@ -78,23 +67,10 @@ func(sd *SavedData) UnmarshalJsonFiles(directory string) error {
 		panic(err)
 	}
 	for _, file := range files {
-		if(!strings.HasPrefix(file.Name(), "DATA")){
+		fileNo := getFileNumber("DATA", file.Name())
+		if fileNo == -1 {
 			continue
 		}
-		slotRune := []rune(file.Name())[9]
-		slotNo, err := strconv.Atoi(string(slotRune))
-		if err != nil{
-			panic(err)
-		}
-		fileRune := []rune(file.Name())[15]
-		fileNo, err := strconv.Atoi(string(fileRune))
-		if err != nil{
-			panic(err)
-		}
-
-		fileNo = slotNo * 15 + fileNo
-
-
 		fileBytes, err := ioutil.ReadFile(directory + "/" + file.Name())
 		if err != nil {
 			panic(err)
@@ -105,6 +81,27 @@ func(sd *SavedData) UnmarshalJsonFiles(directory string) error {
 
 	}
 	return nil
+}
+
+func getFileNumber(prefix string, fileName string) int{
+	re := regexp.MustCompile(fmt.Sprintf(`%s_SLOT(?P<SLOT>\d{1,2})_FILE(?P<FILE>\d{1,2})$`, prefix))
+	slotFile := re.FindStringSubmatch(fileName)
+	if slotFile == nil {
+		return -1
+	}
+	if len(slotFile) < 3 {
+		return -1
+	}
+	slotFile = slotFile[1:]
+	slotNo, err := strconv.Atoi(slotFile[0])
+	if err != nil {
+		return -1
+	}
+	fileNo, err := strconv.Atoi(slotFile[1])
+	if err != nil {
+		return -1
+	}
+	return slotNo * FilesPerSlot + fileNo
 }
 
 func(sd *SavedData) UnmarshalBinary(data []byte) error{
