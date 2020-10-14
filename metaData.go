@@ -13,7 +13,7 @@ type MetaData struct {
 	DataSize int32 //they always plus 4 onto this to account for the NONE or SAVE Header rembere to remove 4 bytes from my file size count
 	FileInfo FileInfo
 	IsGameFinishFlag int32
-	SelectedLanguage int32 //PrefsLanguage //will have to figure out how to use the enum convertion on binary unmarshal
+	SelectedLanguage PrefsLanguage//int32 //PrefsLanguage //will have to figure out how to use the enum convertion on binary unmarshal
 	IsAutoLogin int8
 	SystemAchievementStatuses byte //this is an array but don't think it matters its a size of 1
 	ScreenRotation byte

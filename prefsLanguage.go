@@ -28,6 +28,6 @@ func LanguageIntToLanguageString() map[int32]string {
 //assume system language if not found
 
 //possibly enum this with all possible languages
-type PrefsLangauge struct {
+type PrefsLanguage struct {
 	Value string //find out type //int32 on marshal
 }
