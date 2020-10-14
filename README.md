@@ -1,6 +1,6 @@
 # Final Fantasy IX Save Library ![](.github/logo.jpg)
 ![build](https://github.com/EuanFH/ff9SaveLib/workflows/build/badge.svg?branch=master)
-[![codecov](https://codecov.io/gh/EuanFH/ff9SaveLib/branch/master/graph/badge.svg?token=YRKO4WLF3T)](undefined)
+[![codecov](https://codecov.io/gh/EuanFH/ff9SaveLib/branch/master/graph/badge.svg?token=YRKO4WLF3T)](https://codecov.io/gh/EuanFH/ff9SaveLib/)
 ## Description
 Full implementation of the 2016 FF9 save system. 
 Allows you to read, write, and edit any 2016 save.
