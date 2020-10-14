@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/ff9-save-converter.iml" filepath="$PROJECT_DIR$/.idea/ff9-save-converter.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/ff9SaveLib.iml" filepath="$PROJECT_DIR$/.idea/ff9SaveLib.iml" />
     </modules>
   </component>
 </project>

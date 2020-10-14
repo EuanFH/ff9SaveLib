@@ -2,7 +2,7 @@ package FF9Save
 
 import (
 	"bytes"
-	"chinzer.net/ff9-save-converter/FF9Save/Crypto"
+	"github.com/euanfh/ff9SaveLib/Crypto"
 	"encoding/binary"
 	"encoding/json"
 	"io/ioutil"
