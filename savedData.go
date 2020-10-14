@@ -13,24 +13,24 @@ import (
 const numSlots=10
 const numFiles=15
 
-type SaveData struct {
+type SavedData struct {
 	MetaData MetaData
 	FilePreviews [150]FilePreview
 	Auto File
 	Slot [150]File
 }
 
-func NewSaveData() SaveData{
-	return SaveData{
+func NewSavedData() SavedData {
+	return SavedData{
 		MetaData: NewMetaData(),
 	}
 }
 
-func(sd *SaveData) MarshalJsonFiles(directory string) error {
+func(sd *SavedData) MarshalJsonFiles(directory string) error {
 	return nil
 }
 
-func(sd *SaveData) UnmarshalJsonFiles(directory string) error {
+func(sd *SavedData) UnmarshalJsonFiles(directory string) error {
 	fileInfoBytes, err := ioutil.ReadFile(directory +"/SLOTINFO")
 	if err != nil {
 		panic(err)
@@ -107,7 +107,7 @@ func(sd *SaveData) UnmarshalJsonFiles(directory string) error {
 	return nil
 }
 
-func(sd *SaveData) UnmarshalBinary(data []byte) error{
+func(sd *SavedData) UnmarshalBinary(data []byte) error{
 	buf := bytes.NewBuffer(data)
 	//MetaData
 	metaDataBytes, err := Crypto.DecryptAndReadSaveSection(buf, MetaDataSize, MetaDataReservedSize)
@@ -148,7 +148,7 @@ func(sd *SaveData) UnmarshalBinary(data []byte) error{
 	return nil
 }
 
-func(sd *SaveData) MarshalBinary() ([]byte, error){
+func(sd *SavedData) MarshalBinary() ([]byte, error){
 	buf := new(bytes.Buffer)
 	//MetaData
 	metaDataBytes, err := sd.MetaData.MarshalBinary()
