@@ -8,15 +8,19 @@ import (
 )
 
 func main(){
+	if len(os.Args) < 3 {
+		log.Fatalln("ff9sc help message")
+	}
 	args := os.Args[1:3]
 	var switchSaveFolderPath string
 	var binarySavePath string
 	var convertToBinary bool
 	for i, arg := range args {
 		fileInfo, err := os.Stat(arg)
-		if os.IsNotExist(err) {
+		if os.IsNotExist(err) && i == 0 {
 			log.Fatalf("file %s is not found\n", arg)
 		}
+
 		if fileInfo.IsDir() {
 			if i == 0 { convertToBinary = false}
 			switchSaveFolderPath = arg
@@ -26,7 +30,7 @@ func main(){
 		binarySavePath = arg
 	}
 
-	var saveData FF9Save.SaveData
+	saveData := FF9Save.NewSaveData()
 	if convertToBinary {
 		saveDataBytes, err := ioutil.ReadFile(binarySavePath)
 		if err != nil{
