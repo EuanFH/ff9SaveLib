@@ -7,7 +7,7 @@ import (
 	"testing"
 )
 
-func TestFilePreview_MarshalBinary(t *testing.T) {
+func TestFilePreview_BinaryMarshaler(t *testing.T) {
 	var filePreview FilePreview
 	filePreviewJsonBytes, err := ioutil.ReadFile("testdata/filePreview.json")
 	if err != nil {
@@ -16,7 +16,7 @@ func TestFilePreview_MarshalBinary(t *testing.T) {
 	if err := json.Unmarshal(filePreviewJsonBytes, &filePreview); err != nil{
 		t.FailNow()
 	}
-	filePreviewBinBytes, err := filePreview.MarshalBinary()
+	filePreviewBinBytes, err := filePreview.BinaryMarshaler()
 	if err != nil{
 		t.FailNow()
 	}
@@ -30,9 +30,9 @@ func TestFilePreview_MarshalBinary(t *testing.T) {
 	 */
 }
 
-func TestFilePreview_Empty_MarshalBinary(t *testing.T) {
+func TestFilePreview_Empty_BinaryMarshaler(t *testing.T) {
 	var filePreview FilePreview
-	filePreviewBinBytes, err := filePreview.MarshalBinary()
+	filePreviewBinBytes, err := filePreview.BinaryMarshaler()
 	if err != nil{
 		t.FailNow()
 	}

@@ -25,7 +25,7 @@ type CharacterInfo struct {
 	Name String128
 }
 
-func (fp *FilePreview) MarshalBinary() ([]byte, error) {
+func (fp *FilePreview) BinaryMarshaler() ([]byte, error) {
 	buf := new(bytes.Buffer)
 	filePreview := *fp
 	if *fp == (FilePreview{}) {
@@ -71,7 +71,7 @@ func (fp *FilePreview) FixCharacterInfoFromBinary() {
 	}
 }
 
-func (fp *FilePreview)UnmarshalBinary(data []byte) error{
+func (fp *FilePreview)UnBinaryMarshaler(data []byte) error{
 	//remove header set is corrupted to false
 	data = append([]byte{0x00}, data[4:]...)
 	buf := bytes.NewBuffer(data)

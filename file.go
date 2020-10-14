@@ -237,7 +237,7 @@ type Common_94000 struct {
 	ReservedBuffer_99999 [119]int32FromStr `json:"99999_ReservedBuffer,string"`
 }
 
-func (f *File)MarshalBinary() ([]byte, error) {
+func (f *File)BinaryMarshaler() ([]byte, error) {
 	buf := new(bytes.Buffer)
 	if *f == (File{}) {
 		if err := binary.Write(buf, binary.LittleEndian, []byte{'N','O','N','E'}); err != nil{
@@ -254,7 +254,7 @@ func (f *File)MarshalBinary() ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-func (f *File)UnmarshalBinary(data []byte) error{
+func (f *File)UnBinaryMarshaler(data []byte) error{
 	buf := bytes.NewBuffer(data[4:])
 	//probably should check for Save and do some validation
 	if err := ff9SaveReadWriteBinary(f, buf, false); err != nil{

@@ -40,7 +40,21 @@ func(sd *SavedData) UnmarshalJsonFiles(directory string) error {
 	if err := json.Unmarshal(fileInfoBytes, &sd.MetaData.FileInfo); err != nil {
 		panic(err)
 	}
-	sd.MetaData.SelectedLanguage = 1 //cba reading file this now
+
+	var prefsLanguage PrefsLanguage
+	prefsLanguageBytes, err := ioutil.ReadFile(directory +"/PREFS_Language")
+	if err != nil {
+		panic(err)
+	}
+	if err := json.Unmarshal(prefsLanguageBytes, &prefsLanguage); err != nil {
+		panic(err)
+	}
+	languageInt, ok := LanguageStringToLanguageInt()[prefsLanguage.Value]
+	if !ok {
+		return fmt.Errorf("Language dosn't exist")
+	}
+	sd.MetaData.SelectedLanguage = languageInt
+
 	files, err := ioutil.ReadDir(directory)
 	if err != nil {
 		panic(err)
@@ -104,7 +118,7 @@ func getFileNumber(prefix string, fileName string) int{
 	return slotNo * FilesPerSlot + fileNo
 }
 
-func(sd *SavedData) UnmarshalBinary(data []byte) error{
+func(sd *SavedData) UnBinaryMarshaler(data []byte) error{
 	buf := bytes.NewBuffer(data)
 	//MetaData
 	metaDataBytes, err := Crypto.DecryptAndReadSaveSection(buf, MetaDataSize, MetaDataReservedSize)
@@ -120,7 +134,7 @@ func(sd *SavedData) UnmarshalBinary(data []byte) error{
 		if err != nil {
 			return err
 		}
-		if err := sd.FilePreviews[i].UnmarshalBinary(filePreviewBytes); err != nil {
+		if err := sd.FilePreviews[i].UnBinaryMarshaler(filePreviewBytes); err != nil {
 			return err
 		}
 	}
@@ -129,7 +143,7 @@ func(sd *SavedData) UnmarshalBinary(data []byte) error{
 	if err != nil {
 		return err
 	}
-	if err := sd.Auto.UnmarshalBinary(fileBytes); err != nil {
+	if err := sd.Auto.UnBinaryMarshaler(fileBytes); err != nil {
 		return err
 	}
 	//Slot
@@ -138,17 +152,17 @@ func(sd *SavedData) UnmarshalBinary(data []byte) error{
 		if err != nil {
 			return err
 		}
-		if err := sd.Slot[i].UnmarshalBinary(fileBytes); err != nil {
+		if err := sd.Slot[i].UnBinaryMarshaler(fileBytes); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-func(sd *SavedData) MarshalBinary() ([]byte, error){
+func(sd *SavedData) BinaryMarshaler() ([]byte, error){
 	buf := new(bytes.Buffer)
 	//MetaData
-	metaDataBytes, err := sd.MetaData.MarshalBinary()
+	metaDataBytes, err := sd.MetaData.BinaryMarshaler()
 	if err != nil{
 		return nil, err
 	}
@@ -157,7 +171,7 @@ func(sd *SavedData) MarshalBinary() ([]byte, error){
 	}
 	//FilePreviews
 	for _, filePreview := range sd.FilePreviews {
-		filePreviewBytes, err := filePreview.MarshalBinary()
+		filePreviewBytes, err := filePreview.BinaryMarshaler()
 		if err != nil{
 			return nil, err
 		}
@@ -166,7 +180,7 @@ func(sd *SavedData) MarshalBinary() ([]byte, error){
 		}
 	}
 	//Auto
-	fileBytes, err := sd.Auto.MarshalBinary()
+	fileBytes, err := sd.Auto.BinaryMarshaler()
 	if err != nil{
 		return nil, err
 	}
@@ -175,7 +189,7 @@ func(sd *SavedData) MarshalBinary() ([]byte, error){
 	}
 	//Slot
 	for i, _ := range sd.Slot {
-		fileBytes, err := sd.Slot[i].MarshalBinary()
+		fileBytes, err := sd.Slot[i].BinaryMarshaler()
 		if err != nil{
 			return nil, err
 		}

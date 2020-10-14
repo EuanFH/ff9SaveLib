@@ -16,12 +16,12 @@ func TestSaveData_MarshalJsonFiles(t *testing.T) {
 func TestSaveData_UnmarshalJsonFiles(t *testing.T) {
 }
 
-func TestSaveData_MarshalBinary(t *testing.T) {
+func TestSaveData_BinaryMarshaler(t *testing.T) {
 	savedData := NewSavedData()
 	if err := savedData.UnmarshalJsonFiles("testdata/JsonSavedData"); err != nil {
 		t.Errorf("failed to unmarshal json files to savedData struct\n error: %s", err)
 	}
-	savedDataBytes, err := savedData.MarshalBinary()
+	savedDataBytes, err := savedData.BinaryMarshaler()
 	if err != nil {
 		t.Errorf("failed to marshal binary from savedData struct\n error: %s", err)
 	}
@@ -34,6 +34,6 @@ func TestSaveData_MarshalBinary(t *testing.T) {
 	}
 }
 
-func TestSaveData_UnmarshalBinary(t *testing.T) {
+func TestSaveData_UnBinaryMarshaler(t *testing.T) {
 
 }
