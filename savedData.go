@@ -32,6 +32,7 @@ func(sd *SavedData) MarshalJsonFiles(directory string) error {
 	return nil
 }
 
+//could possibly make marshal json files into an interface not sure
 func(sd *SavedData) UnmarshalJsonFiles(directory string) error {
 	fileInfoBytes, err := ioutil.ReadFile(directory +"/SLOTINFO")
 	if err != nil {
@@ -118,7 +119,7 @@ func getFileNumber(prefix string, fileName string) int{
 	return slotNo * FilesPerSlot + fileNo
 }
 
-func(sd *SavedData) UnBinaryMarshaler(data []byte) error{
+func(sd *SavedData) BinaryUnmarshaler(data []byte) error{
 	buf := bytes.NewBuffer(data)
 	//MetaData
 	metaDataBytes, err := Crypto.DecryptAndReadSaveSection(buf, MetaDataSize, MetaDataReservedSize)
