@@ -10,7 +10,17 @@ import (
 //probably just symlink the same file a bunch of times to save space
 
 func TestSaveData_MarshalJsonFiles(t *testing.T) {
-
+	savedData := NewSavedData()
+	saveDataBytes, err := ioutil.ReadFile("testdata/SavedData_ww.dat")
+	if err != nil{
+		t.FailNow()
+	}
+	if err := savedData.BinaryUnmarshaler(saveDataBytes); err != nil {
+		t.FailNow()
+	}
+	if err := savedData.MarshalJsonFiles("/tmp/ff9SaveData"); err != nil{
+		t.FailNow()
+	}
 }
 
 func TestSaveData_UnmarshalJsonFiles(t *testing.T) {
@@ -34,6 +44,6 @@ func TestSaveData_BinaryMarshaler(t *testing.T) {
 	}
 }
 
-func TestSaveData_UnBinaryMarshaler(t *testing.T) {
+func TestSaveData_BinaryUnMarshaler(t *testing.T) {
 
 }
