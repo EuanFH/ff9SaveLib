@@ -63,7 +63,7 @@ func(sd *SavedData) MarshalJsonFiles(directory string) error {
 		if filePreview == (FilePreview{}) {
 			continue
 		}
-		fileName := generateSaveFileName("PREVIEW", filePreviewPos)
+		fileName := GenerateSaveFileName("PREVIEW", filePreviewPos)
 		filePreviewBytes, err := json.Marshal(&filePreview)
 		if err != nil {
 			return err
@@ -88,7 +88,7 @@ func(sd *SavedData) MarshalJsonFiles(directory string) error {
 		if file == (File{}) {
 			continue
 		}
-		fileName := generateSaveFileName("DATA", filePos)
+		fileName := GenerateSaveFileName("DATA", filePos)
 		fileBytes, err := json.Marshal(&file)
 		if err != nil {
 			return err
@@ -121,7 +121,7 @@ func(sd *SavedData) UnmarshalJsonFiles(directory string) error {
 	}
 	languageInt, ok := LanguageStringToLanguageInt()[prefsLanguage.Value]
 	if !ok {
-		return fmt.Errorf("Language dosn't exist")
+		return fmt.Errorf("language dosn't exist")
 	}
 	sd.MetaData.SelectedLanguage = languageInt
 
@@ -131,7 +131,7 @@ func(sd *SavedData) UnmarshalJsonFiles(directory string) error {
 		return err
 	}
 	for _, file := range files {
-		fileNo := getFilePos("PREVIEW", file.Name())
+		fileNo := GetFilePos("PREVIEW", file.Name())
 		if fileNo == -1 || fileNo > len(sd.Slot) {
 			continue
 		}
@@ -156,7 +156,7 @@ func(sd *SavedData) UnmarshalJsonFiles(directory string) error {
 
 	//save files
 	for _, file := range files {
-		fileNo := getFilePos("DATA", file.Name())
+		fileNo := GetFilePos("DATA", file.Name())
 		if fileNo == -1 {
 			continue
 		}
@@ -172,7 +172,7 @@ func(sd *SavedData) UnmarshalJsonFiles(directory string) error {
 	return nil
 }
 
-func getFilePos(prefix string, fileName string) int{
+func GetFilePos(prefix string, fileName string) int{
 	re := regexp.MustCompile(fmt.Sprintf(`%s_SLOT(?P<SLOT>\d{1,2})_FILE(?P<FILE>\d{1,2})$`, prefix))
 	slotFile := re.FindStringSubmatch(fileName)
 	if slotFile == nil {
@@ -193,14 +193,14 @@ func getFilePos(prefix string, fileName string) int{
 	return slotNo * FilesPerSlot + fileNo
 }
 
-func getSlotAndFileNumber(filePos int) (int, int){
+func GetSlotAndFileNumber(filePos int) (int, int){
 	slotNo := int(math.Floor(float64(filePos / FilesPerSlot)))
 	fileNo := filePos - slotNo * FilesPerSlot
 	return slotNo, fileNo
 }
 
-func generateSaveFileName(prefix string, filePos int) string{
-	slotNo, fileNo := getSlotAndFileNumber(filePos)
+func GenerateSaveFileName(prefix string, filePos int) string{
+	slotNo, fileNo := GetSlotAndFileNumber(filePos)
 	return fmt.Sprintf("%s_SLOT%d_FILE%d", prefix, slotNo, fileNo)
 }
 
@@ -215,7 +215,7 @@ func(sd *SavedData) BinaryUnmarshaler(data []byte) error{
 		return err
 	}
 	//FilePreviews
-	for i, _ := range sd.FilePreviews {
+	for i := range sd.FilePreviews {
 		filePreviewBytes, err := DecryptAndReadSaveSection(buf, FilePreviewSize, FilePreviewReservedSize)
 		if err != nil {
 			return err
@@ -233,7 +233,7 @@ func(sd *SavedData) BinaryUnmarshaler(data []byte) error{
 		return err
 	}
 	//Slot
-	for i, _ := range sd.Slot {
+	for i := range sd.Slot {
 		fileBytes, err := DecryptAndReadSaveSection(buf, FileSize, FileReservedSize)
 		if err != nil {
 			return err
@@ -274,7 +274,7 @@ func(sd *SavedData) BinaryMarshaler() ([]byte, error){
 		return nil, err
 	}
 	//Slot
-	for i, _ := range sd.Slot {
+	for i := range sd.Slot {
 		fileBytes, err := sd.Slot[i].BinaryMarshaler()
 		if err != nil{
 			return nil, err
