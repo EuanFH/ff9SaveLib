@@ -5,7 +5,6 @@ import (
 	"encoding/binary"
 	"encoding/json"
 	"fmt"
-	"github.com/euanfh/ff9SaveLib/Crypto"
 	"io/ioutil"
 	"math"
 	"os"
@@ -208,7 +207,7 @@ func generateSaveFileName(prefix string, filePos int) string{
 func(sd *SavedData) BinaryUnmarshaler(data []byte) error{
 	buf := bytes.NewBuffer(data)
 	//MetaData
-	metaDataBytes, err := Crypto.DecryptAndReadSaveSection(buf, MetaDataSize, MetaDataReservedSize)
+	metaDataBytes, err := DecryptAndReadSaveSection(buf, MetaDataSize, MetaDataReservedSize)
 	if err != nil{
 		return err
 	}
@@ -217,7 +216,7 @@ func(sd *SavedData) BinaryUnmarshaler(data []byte) error{
 	}
 	//FilePreviews
 	for i, _ := range sd.FilePreviews {
-		filePreviewBytes, err := Crypto.DecryptAndReadSaveSection(buf, FilePreviewSize, FilePreviewReservedSize)
+		filePreviewBytes, err := DecryptAndReadSaveSection(buf, FilePreviewSize, FilePreviewReservedSize)
 		if err != nil {
 			return err
 		}
@@ -226,7 +225,7 @@ func(sd *SavedData) BinaryUnmarshaler(data []byte) error{
 		}
 	}
 	//Auto
-	fileBytes, err := Crypto.DecryptAndReadSaveSection(buf, FileSize, FileReservedSize)
+	fileBytes, err := DecryptAndReadSaveSection(buf, FileSize, FileReservedSize)
 	if err != nil {
 		return err
 	}
@@ -235,7 +234,7 @@ func(sd *SavedData) BinaryUnmarshaler(data []byte) error{
 	}
 	//Slot
 	for i, _ := range sd.Slot {
-		fileBytes, err := Crypto.DecryptAndReadSaveSection(buf, FileSize, FileReservedSize)
+		fileBytes, err := DecryptAndReadSaveSection(buf, FileSize, FileReservedSize)
 		if err != nil {
 			return err
 		}
@@ -253,7 +252,7 @@ func(sd *SavedData) BinaryMarshaler() ([]byte, error){
 	if err != nil{
 		return nil, err
 	}
-	if err := Crypto.EncryptAndWriteSaveSection(buf, metaDataBytes, MetaDataReservedSize); err != nil {
+	if err := EncryptAndWriteSaveSection(buf, metaDataBytes, MetaDataReservedSize); err != nil {
 		return nil, err
 	}
 	//FilePreviews
@@ -262,7 +261,7 @@ func(sd *SavedData) BinaryMarshaler() ([]byte, error){
 		if err != nil{
 			return nil, err
 		}
-		if err := Crypto.EncryptAndWriteSaveSection(buf, filePreviewBytes, FilePreviewReservedSize); err != nil {
+		if err := EncryptAndWriteSaveSection(buf, filePreviewBytes, FilePreviewReservedSize); err != nil {
 			return nil, err
 		}
 	}
@@ -271,7 +270,7 @@ func(sd *SavedData) BinaryMarshaler() ([]byte, error){
 	if err != nil{
 		return nil, err
 	}
-	if err := Crypto.EncryptAndWriteSaveSection(buf, fileBytes, FileReservedSize); err != nil {
+	if err := EncryptAndWriteSaveSection(buf, fileBytes, FileReservedSize); err != nil {
 		return nil, err
 	}
 	//Slot
@@ -280,9 +279,34 @@ func(sd *SavedData) BinaryMarshaler() ([]byte, error){
 		if err != nil{
 			return nil, err
 		}
-		if err := Crypto.EncryptAndWriteSaveSection(buf, fileBytes, FileReservedSize); err != nil {
+		if err := EncryptAndWriteSaveSection(buf, fileBytes, FileReservedSize); err != nil {
 			return nil, err
 		}
 	}
 	return buf.Bytes(), nil
+}
+
+func EncryptAndWriteSaveSection(buf *bytes.Buffer, data []byte, reservedSize int) error{
+	dataEncrypted, err := Encrypt(data)
+	if err != nil{
+		return err
+	}
+	dataEncryptedWithReservedSpace := append(dataEncrypted, make([]byte, reservedSize - len(dataEncrypted))...)
+	if err := binary.Write(buf, binary.LittleEndian, dataEncryptedWithReservedSpace); err != nil {
+		return err
+	}
+	return nil
+}
+
+func DecryptAndReadSaveSection(buf *bytes.Buffer, size, reservedSize int) ([]byte, error){
+	dataEncrypted := make([]byte, cipherSize(size))
+	if _, err := buf.Read(dataEncrypted); err != nil{
+		return nil, err
+	}
+	data, err := Decrypt(dataEncrypted)
+	if err != nil{
+		return nil, err
+	}
+	buf.Next(reservedSize - len(dataEncrypted))
+	return data, nil
 }
