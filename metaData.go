@@ -41,37 +41,3 @@ func (md *MetaData) BinaryMarshaler() ([]byte, error){
 	}
 	return buf.Bytes(), nil
 }
-
-/*
-//original systemAchievementStatuses code. could possibly guess some of this from save files but not sure.
-	if (AchievementState.IsSystemAchievement(key))
-	{
-		Int32 num = 0;
-		if (key != AcheivementKey.CompleteGame)
-		{
-			if (key == AcheivementKey.Blackjack)
-			{
-				num = 2;
-			}
-		}
-		Byte b = (Byte)AchievementState.ConvertAchievementStatusToData(status, num);
-		Byte b2 = (Byte)(3 << num);
-		Byte[] systemAchievementStatuses = FF9StateSystem.Settings.SystemAchievementStatuses;
-		Int32 num2 = 0;
-		systemAchievementStatuses[num2] = (Byte)(systemAchievementStatuses[num2] & (Byte)(~b2));
-		Byte[] systemAchievementStatuses2 = FF9StateSystem.Settings.SystemAchievementStatuses;
-		Int32 num3 = 0;
-		systemAchievementStatuses2[num3] = (Byte)(systemAchievementStatuses2[num3] | b);
-		FF9StateSystem.Serializer.SetSystemAchievementStatuses(FF9StateSystem.Settings.SystemAchievementStatuses, delegate(DataSerializerErrorCode errNo)
-		{
-		});
-	}
-	else
-	{
-		FF9StateSystem.Achievement.SetNormalAchievementStatuses(key, status);
-	}
- */
-
-//Screen Rotation
-//seemingly only valid values are 3 and 4
-//assuming horizontal and vertical find out which are which
