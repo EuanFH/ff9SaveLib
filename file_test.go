@@ -36,7 +36,7 @@ func TestFileEmptyBinaryMarshaler(t *testing.T) {
 	if err != nil {
 		t.FailNow()
 	}
-	if !bytes.Equal(emptyFileBytes[0:4],NoneHeader[:]){
+	if !bytes.Equal(emptyFileBytes[:4],NoneHeader[:]){
 		t.Error("Binary didn't contain none header when save file was empty")
 	}
 }
