@@ -1,0 +1,42 @@
+on:
+  push:
+    # Sequence of patterns matched against refs/tags
+    tags:
+      - 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10
+
+name: Create Release
+
+defaults:
+  run:
+    working-directory: cmd/commandline
+
+jobs:
+  build:
+    name: Create Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Setup Go
+        uses: actions/setup-go@v2
+        with:
+          stable: 'true'
+      - name: Build Windows x64
+        run: GOOS=windows GOARCH=amd64 go build -o build/ff9sc-windows-x64/ff9sc.exe
+      - name: Build Windows x86
+        run: GOOS=windows GOARCH=386 go build -o build/ff9sc-windows-x86/ff9sc.exe
+      - name: Build Linux x64
+        run: GOOS=linux GOARCH=amd64 go build -o build/ff9sc-linux-x64/ff9sc
+      - name: Build Linux x86
+        run: GOOS=linux GOARCH=386 go build -o build/ff9sc-linux-x86/ff9sc
+      - name: Build Darwin x64
+        run: GOOS=darwin GOARCH=amd64 go build -o build/ff9sc-macos-x64/ff9sc
+      - name: Build Darwin x86
+        run: GOOS=darwin GOARCH=386 go build -o build/ff9sc-macos-x86/ff9sc
+      - name: Create build zips
+        run: for folder in build/*; do zip -j ${folder}.zip ${folder}/*; done
+      - name: Create Release
+        uses: ncipollo/release-action@v1
+        with:
+          artifacts: "cmd/commandline/build/*.zip"
+          token: ${{ secrets.GITHUB_TOKEN }}
