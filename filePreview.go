@@ -29,11 +29,11 @@ func (fp *FilePreview) BinaryMarshaler() ([]byte, error) {
 	buf := new(bytes.Buffer)
 	filePreview := *fp
 	if *fp == (FilePreview{}) {
-		if err := binary.Write(buf, binary.LittleEndian, []byte{'N','O','N','E'}); err != nil{
+		if err := binary.Write(buf, binary.LittleEndian, NoneHeader); err != nil{
 			return nil, err
 		}
 	} else {
-		if err := binary.Write(buf, binary.LittleEndian, []byte{'P','R','E','V'}); err != nil{
+		if err := binary.Write(buf, binary.LittleEndian, PrevHeader); err != nil{
 			return nil, err
 		}
 		filePreview.FixCharacterInfoForBinary()
@@ -71,7 +71,7 @@ func (fp *FilePreview) FixCharacterInfoFromBinary() {
 	}
 }
 
-func (fp *FilePreview)UnBinaryMarshaler(data []byte) error{
+func (fp *FilePreview) BinaryUnmarshaler(data []byte) error{
 	//remove header set is corrupted to false
 	data = append([]byte{0x00}, data[4:]...)
 	buf := bytes.NewBuffer(data)

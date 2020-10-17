@@ -7,7 +7,7 @@ import (
 	"testing"
 )
 
-func TestFile_BinaryMarshaler(t *testing.T) {
+func TestFileBinaryMarshaler(t *testing.T) {
 	var file File
 	fileJsonBytes, err := ioutil.ReadFile("testdata/file.json")
 	if err != nil {
@@ -30,13 +30,24 @@ func TestFile_BinaryMarshaler(t *testing.T) {
 	}
 }
 
-func TestFile_UnBinaryMarshaler(t *testing.T) {
+func TestFileEmptyBinaryMarshaler(t *testing.T) {
+	var file File
+	emptyFileBytes, err := file.BinaryMarshaler()
+	if err != nil {
+		t.FailNow()
+	}
+	if !bytes.Equal(emptyFileBytes[0:4],NoneHeader[:]){
+		t.Error("Binary didn't contain none header when save file was empty")
+	}
+}
+
+func TestFileBinaryUnmarshaler(t *testing.T) {
 	var file File
 	fileBinBytes, err := ioutil.ReadFile("testdata/file.bin")
 	if err != nil {
 		t.FailNow()
 	}
-	if err := file.UnBinaryMarshaler(fileBinBytes); err != nil{
+	if err := file.BinaryUnmarshaler(fileBinBytes); err != nil{
 		t.Fail()
 	}
 	fileJsonBytes, err := json.Marshal(file)

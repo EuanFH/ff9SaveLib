@@ -33,7 +33,7 @@ func NewMetaData() MetaData{
 
 func (md *MetaData) BinaryMarshaler() ([]byte, error){
 	buf := new(bytes.Buffer)
-	if err := binary.Write(buf, binary.LittleEndian, []byte{'S','A','V','E'}); err != nil {
+	if err := binary.Write(buf, binary.LittleEndian, SaveHeader); err != nil {
 		return nil, err
 	}
 	if err := binary.Write(buf, binary.LittleEndian,  md); err != nil {

@@ -240,11 +240,11 @@ type Common_94000 struct {
 func (f *File)BinaryMarshaler() ([]byte, error) {
 	buf := new(bytes.Buffer)
 	if *f == (File{}) {
-		if err := binary.Write(buf, binary.LittleEndian, []byte{'N','O','N','E'}); err != nil{
+		if err := binary.Write(buf, binary.LittleEndian, NoneHeader); err != nil{
 			return nil, err
 		}
 	} else {
-		if err := binary.Write(buf, binary.LittleEndian, []byte{'S','A','V','E'}); err != nil{
+		if err := binary.Write(buf, binary.LittleEndian, SaveHeader); err != nil{
 			return nil, err
 		}
 	}
@@ -254,7 +254,7 @@ func (f *File)BinaryMarshaler() ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-func (f *File)UnBinaryMarshaler(data []byte) error{
+func (f *File) BinaryUnmarshaler(data []byte) error{
 	buf := bytes.NewBuffer(data[4:])
 	//probably should check for Save and do some validation
 	if err := ff9SaveReadWriteBinary(f, buf, false); err != nil{

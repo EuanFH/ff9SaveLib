@@ -112,27 +112,6 @@ func (in *int32FromStr) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-type uint16FromStr uint16
-
-func (ui uint16FromStr) MarshalJSON() ([]byte, error) {
-	return []byte(`"` + strconv.FormatUint(uint64(ui), 10) + `"`), nil
-}
-
-func (ui *uint16FromStr) UnmarshalJSON(data []byte) error {
-	// Try array of strings first.
-	var str string
-	err := json.Unmarshal(data, &str)
-	if err != nil {
-		return err
-	}
-	i, err := strconv.ParseUint(str, 10, 32)
-	if err != nil{
-		return err
-	}
-	*ui = uint16FromStr(i)
-	return nil
-}
-
 type boolFromStr bool
 
 func (b boolFromStr) MarshalJSON() ([]byte, error) {

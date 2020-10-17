@@ -81,13 +81,13 @@ func convertBinarySaveToJson(binarySavePath string, switchSaveFolderPath string)
         if err := savedData.BinaryUnmarshaler(saveDataBytes); err != nil {
                 return fmt.Errorf("failed to read file %s\nerror: %s", binarySavePath, err)
         }
-        if err := MarshalFF9JsonFiles(savedData, switchSaveFolderPath); err != nil {
+        if err := marshalFF9JsonFiles(savedData, switchSaveFolderPath); err != nil {
                 return fmt.Errorf("failed to generate json save files\nerror: %s", err)
         }
         return nil
 }
 func convertJsonSavesToBinary(switchSaveFolderPath string, binarySavePath string) error {
-        savedData, err := UnmarshalFF9JsonFiles(switchSaveFolderPath)
+        savedData, err := unmarshalFF9JsonFiles(switchSaveFolderPath)
         if err != nil {
                 return fmt.Errorf("failed to read json save files\nerror: %s", err)
         }
@@ -102,7 +102,7 @@ func convertJsonSavesToBinary(switchSaveFolderPath string, binarySavePath string
 }
 
 
-func MarshalFF9JsonFiles(savedData ff9Save.SavedData, directory string) error {
+func marshalFF9JsonFiles(savedData ff9Save.SavedData, directory string) error {
         //File Info
         fileInfoBytes, err := json.Marshal(&savedData.MetaData.FileInfo)
         if err != nil {
@@ -170,7 +170,7 @@ func MarshalFF9JsonFiles(savedData ff9Save.SavedData, directory string) error {
         return nil
 }
 
-func UnmarshalFF9JsonFiles(directory string) (*ff9Save.SavedData, error) {
+func unmarshalFF9JsonFiles(directory string) (*ff9Save.SavedData, error) {
         savedData := ff9Save.NewSavedData()
         //metadata
         fileInfoBytes, err := ioutil.ReadFile(filepath.Join(directory, "SLOTINFO"))

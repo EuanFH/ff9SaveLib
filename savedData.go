@@ -73,7 +73,7 @@ func(sd *SavedData) BinaryUnmarshaler(data []byte) error{
 		if err != nil {
 			return err
 		}
-		if err := sd.FilePreviews[i].UnBinaryMarshaler(filePreviewBytes); err != nil {
+		if err := sd.FilePreviews[i].BinaryUnmarshaler(filePreviewBytes); err != nil {
 			return err
 		}
 	}
@@ -82,7 +82,7 @@ func(sd *SavedData) BinaryUnmarshaler(data []byte) error{
 	if err != nil {
 		return err
 	}
-	if err := sd.Auto.UnBinaryMarshaler(fileBytes); err != nil {
+	if err := sd.Auto.BinaryUnmarshaler(fileBytes); err != nil {
 		return err
 	}
 	//Slot
@@ -91,7 +91,7 @@ func(sd *SavedData) BinaryUnmarshaler(data []byte) error{
 		if err != nil {
 			return err
 		}
-		if err := sd.Slot[i].UnBinaryMarshaler(fileBytes); err != nil {
+		if err := sd.Slot[i].BinaryUnmarshaler(fileBytes); err != nil {
 			return err
 		}
 	}
