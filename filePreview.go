@@ -51,10 +51,8 @@ func (fp *FilePreview) BinaryMarshaler() ([]byte, error) {
 //in json the values are 0 for empty characterInfo but in binary they are -1
 func (fp *FilePreview) FixCharacterInfoForBinary() {
 	for i, _ := range fp.CharacterInfoList {
-		if fp.CharacterInfoList[i].SerialID == 0 {
+		if fp.CharacterInfoList[i].SerialID == 0 &&  fp.CharacterInfoList[i].Level == 0 {
 			fp.CharacterInfoList[i].SerialID = -1
-		}
-		if fp.CharacterInfoList[i].Level == 0 {
 			fp.CharacterInfoList[i].Level = -1
 		}
 	}
@@ -62,11 +60,9 @@ func (fp *FilePreview) FixCharacterInfoForBinary() {
 
 func (fp *FilePreview) FixCharacterInfoFromBinary() {
 	for i, _ := range fp.CharacterInfoList {
-		if fp.CharacterInfoList[i].SerialID == -1 {
-			fp.CharacterInfoList[i].SerialID = 0
-		}
-		if fp.CharacterInfoList[i].Level == -1 {
+		if fp.CharacterInfoList[i].SerialID == -1 &&  fp.CharacterInfoList[i].Level == -1 {
 			fp.CharacterInfoList[i].Level = 0
+			fp.CharacterInfoList[i].SerialID = 0
 		}
 	}
 }
