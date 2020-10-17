@@ -73,7 +73,7 @@ func helpMessage() {
 }
 
 func convertBinarySaveToJson(binarySavePath string, switchSaveFolderPath string) error{
-        savedData := FF9Save.NewSavedData()
+        savedData := ff9Save.NewSavedData()
         saveDataBytes, err := ioutil.ReadFile(binarySavePath)
         if err != nil{
                 return fmt.Errorf("unable to read file %s\nerror: %s", binarySavePath, err)
@@ -102,7 +102,7 @@ func convertJsonSavesToBinary(switchSaveFolderPath string, binarySavePath string
 }
 
 
-func MarshalFF9JsonFiles(savedData FF9Save.SavedData, directory string) error {
+func MarshalFF9JsonFiles(savedData ff9Save.SavedData, directory string) error {
         //File Info
         fileInfoBytes, err := json.Marshal(&savedData.MetaData.FileInfo)
         if err != nil {
@@ -113,8 +113,8 @@ func MarshalFF9JsonFiles(savedData FF9Save.SavedData, directory string) error {
                 return err
         }
 
-        var prefsLanguage FF9Save.PrefsLanguage
-        languageString, ok := FF9Save.LanguageIntToLanguageString()[savedData.MetaData.SelectedLanguage]
+        var prefsLanguage ff9Save.PrefsLanguage
+        languageString, ok := ff9Save.LanguageIntToLanguageString()[savedData.MetaData.SelectedLanguage]
         if !ok {
                 return err
         }
@@ -129,10 +129,10 @@ func MarshalFF9JsonFiles(savedData FF9Save.SavedData, directory string) error {
 
         //file previews
         for filePreviewPos, filePreview := range savedData.FilePreviews {
-                if filePreview == (FF9Save.FilePreview{}) {
+                if filePreview == (ff9Save.FilePreview{}) {
                         continue
                 }
-                fileName := FF9Save.GenerateSaveFileName("PREVIEW", filePreviewPos)
+                fileName := ff9Save.GenerateSaveFileName("PREVIEW", filePreviewPos)
                 filePreviewBytes, err := json.Marshal(&filePreview)
                 if err != nil {
                         return err
@@ -154,10 +154,10 @@ func MarshalFF9JsonFiles(savedData FF9Save.SavedData, directory string) error {
 
         //save files
         for filePos, file := range savedData.Slot {
-                if file == (FF9Save.File{}) {
+                if file == (ff9Save.File{}) {
                         continue
                 }
-                fileName := FF9Save.GenerateSaveFileName("DATA", filePos)
+                fileName := ff9Save.GenerateSaveFileName("DATA", filePos)
                 fileBytes, err := json.Marshal(&file)
                 if err != nil {
                         return err
@@ -170,8 +170,8 @@ func MarshalFF9JsonFiles(savedData FF9Save.SavedData, directory string) error {
         return nil
 }
 
-func UnmarshalFF9JsonFiles(directory string) (*FF9Save.SavedData, error) {
-        savedData := FF9Save.NewSavedData()
+func UnmarshalFF9JsonFiles(directory string) (*ff9Save.SavedData, error) {
+        savedData := ff9Save.NewSavedData()
         //metadata
         fileInfoBytes, err := ioutil.ReadFile(filepath.Join(directory, "SLOTINFO"))
         if err != nil {
@@ -181,7 +181,7 @@ func UnmarshalFF9JsonFiles(directory string) (*FF9Save.SavedData, error) {
                 return nil, err
         }
 
-        var prefsLanguage FF9Save.PrefsLanguage
+        var prefsLanguage ff9Save.PrefsLanguage
         prefsLanguageBytes, err := ioutil.ReadFile(filepath.Join(directory, "/PREFS_Language"))
         if err != nil {
                 return nil, err
@@ -189,7 +189,7 @@ func UnmarshalFF9JsonFiles(directory string) (*FF9Save.SavedData, error) {
         if err := json.Unmarshal(prefsLanguageBytes, &prefsLanguage); err != nil {
                 return nil, err
         }
-        languageInt, ok := FF9Save.LanguageStringToLanguageInt()[prefsLanguage.Value]
+        languageInt, ok := ff9Save.LanguageStringToLanguageInt()[prefsLanguage.Value]
         if !ok {
                 return nil, fmt.Errorf("language dosn't exist")
         }
@@ -201,7 +201,7 @@ func UnmarshalFF9JsonFiles(directory string) (*FF9Save.SavedData, error) {
                 return nil, err
         }
         for _, file := range files {
-                fileNo := FF9Save.GetFilePos("PREVIEW", file.Name())
+                fileNo := ff9Save.GetFilePos("PREVIEW", file.Name())
                 if fileNo == -1 || fileNo > len(savedData.Slot) {
                         continue
                 }
@@ -226,7 +226,7 @@ func UnmarshalFF9JsonFiles(directory string) (*FF9Save.SavedData, error) {
 
         //save files
         for _, file := range files {
-                fileNo := FF9Save.GetFilePos("DATA", file.Name())
+                fileNo := ff9Save.GetFilePos("DATA", file.Name())
                 if fileNo == -1 {
                         continue
                 }

@@ -1,4 +1,4 @@
-package FF9Save
+package ff9Save
 
 type FileInfo struct {
 	LatestSlot int32

@@ -1,4 +1,4 @@
-package FF9Save
+package ff9Save
 
 func LanguageStringToLanguageInt() map[string]int32 {
 	return map[string]int32{
