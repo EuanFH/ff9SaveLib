@@ -32,6 +32,13 @@ Here are the list of fields not carried over:
  
 The command line utility will initialize these fields with default values.
 
+## Bug Reporting 🐛
+If this tool generates a corrupted save file please report it.
+Please submit an issue on github including:
+ - What is corrupted in the game
+ - Attaching both save files original and generated
+ - What direction you where converting switch to pc or pc to switch 
+
 ## Command line Utility ️🖥️
 After downloading the application you will need to run it from the command prompt or terminal depending on your OS.
 
