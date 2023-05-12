@@ -31,8 +31,8 @@ jobs:
         run: GOOS=linux GOARCH=386 go build -o build/ff9sc-linux-x86/ff9sc
       - name: Build Darwin x64
         run: GOOS=darwin GOARCH=amd64 go build -o build/ff9sc-macos-x64/ff9sc
-      - name: Build Darwin x86
-        run: GOOS=darwin GOARCH=386 go build -o build/ff9sc-macos-x86/ff9sc
+      - name: Build Darwin Arm64
+        run: GOOS=darwin GOARCH=arm64 go build -o build/ff9sc-macos-arm64/ff9sc
       - name: Create build zips
         run: for folder in build/*; do zip -j ${folder}.zip ${folder}/*; done
       - name: Create Release
